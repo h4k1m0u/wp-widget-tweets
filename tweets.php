@@ -73,10 +73,6 @@ class Tweets_Widget extends WP_Widget {
         // Outputs the content of the widget
         $query = $instance['query'];
         $connection = new TwitterOAuth($instance['consumer_key'], $instance['consumer_secret'], $instance['access_token'], $instance['access_token_secret']);
-
-        // retreive tweets
-        $content = $connection->get('search/tweets', array('q' => $query));
-        $statuses = $content->statuses;
         ?>
         <aside id="tweets" class="widget widget_tweets">
             <h1 class="widget-title">
@@ -85,19 +81,33 @@ class Tweets_Widget extends WP_Widget {
                 </a>
             </h1>
             <div>
-                <ul>
-                    <?php foreach($statuses as $status) {?>
-                        
-                        <li>
-                            <p>
-                                <?php echo substr($status->created_at, 0, 19); ?>
-                            </p>
-                            <a href="<?php echo $status->entities->media[0]->url; ?>" target="_blank">
-                                <?php echo substr($status->text, 0, 50) . '...'; ?>
-                            </a>
-                        </li>
+                <?php try { ?>
+                    <?php
+                        // retreive tweets
+                        $content = $connection->get('search/tweets', array('q' => $query));
+                        $statuses = $content->statuses;
+
+                        if ($statuses) {
+                    ?>
+                            <ul>
+                                <?php foreach($statuses as $status) {?>
+                                    
+                                    <li>
+                                        <p>
+                                            <?php echo substr($status->created_at, 0, 19); ?>
+                                        </p>
+                                        <a href="<?php echo $status->entities->media[0]->url; ?>" target="_blank">
+                                            <?php echo substr($status->text, 0, 50) . '...'; ?>
+                                        </a>
+                                    </li>
+                                <?php } ?>
+                            </ul>
+                    <?php } else { ?>
+                        No status retreived.
                     <?php } ?>
-                </ul>
+                <?php } catch (Exception $e) { ?>
+                    <?php echo $e->getMessage(); ?>
+                <?php } ?>
             </div>
         </aside>
         <?php
